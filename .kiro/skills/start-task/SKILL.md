@@ -4,7 +4,7 @@ description: Ground yourself before starting a GridWise task. Read the steering 
 ---
 # Start Task
 
-1. Read `.kiro/steering/project.md`, plus `backend.md` and/or `frontend.md` for whichever areas the task touches.
+1. Read `.kiro/steering/project.md`, plus `backend/skills.md` and/or `frontend/skills.md` for whichever areas the task touches.
 2. Summarize:
    - The architecture relevant to this task
    - The files likely to change, and why

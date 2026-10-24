@@ -3,7 +3,7 @@ inclusion: always
 ---
 # GridWise Project Steering
 
-Read this before any non-trivial change. Directory rules live in `backend.md` and `frontend.md` in this folder and load automatically when you touch files there.
+Read this before any non-trivial change. Directory rules live next to the code in `backend/skills.md` and `frontend/skills.md`. They load only when you work on files in that directory.
 
 ## Project Overview
 
@@ -78,15 +78,29 @@ No linter, formatter, or typechecker is configured for either side. Don't claim 
 4. Fix the root cause with the smallest change, then run `pytest` (backend) or `npm run build` (frontend).
 5. If the bug came from missing project knowledge, propose a lesson for the relevant steering file.
 
-## Self-Improvement Rule
+## Learning Loop (Self-Improvement Rule)
 
-When you fix a bug, find an architectural detail, or get a correction from the user, propose a specific edit to the right steering file:
+Triggers:
+- The user corrects something that is likely to recur
+- You fix a bug whose root cause came from missing project knowledge
+- You discover an architectural detail or edge case that isn't written down
 
-- It affects the whole project: this file
-- It affects only `backend/` or `frontend/`: `backend.md` or `frontend.md`
-- It's a reusable workflow: a skill in `.kiro/skills/`
+When one happens, propose a **one-line rule** and say where it belongs:
 
-Show the exact text you want to add and apply it once the user approves. Write concrete rules with file paths, not vague reminders. Run `/wrap-up` at the end of a task.
+| Scope | Where it goes |
+|---|---|
+| All projects (how you work in general) | `~/.kiro/steering/AGENTS.md` (global) |
+| The whole GridWise project | this file (`.kiro/steering/project.md`), in the matching section or under Recent Lessons |
+| Only `backend/` or only `frontend/` | `backend/skills.md` or `frontend/skills.md` |
+| A repeatable multi-step workflow | a skill in `.kiro/skills/<name>/SKILL.md` |
+| Something a tool can enforce mechanically | a lint rule, or a Kiro hook in `.kiro/hooks/` (it's better for a tool to check than for prose to remind) |
+
+Rules for the loop:
+- Never edit an instruction file (any of the above) without the user's approval. Show the exact line and the target file first.
+- Make it specific and checkable, with file paths or names. "Be careful with X" isn't a rule.
+- If a new rule contradicts an existing one, say so and propose replacing the old one. Don't just add the new one alongside.
+- Edit `backend/skills.md` or `frontend/skills.md`, never the loader stubs in `.kiro/steering/`.
+- At the end of a task, run `/wrap-up` to catch anything you missed.
 
 ## Open Questions
 
