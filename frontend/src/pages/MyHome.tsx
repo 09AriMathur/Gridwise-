@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BatteryCharging, CalendarClock, CheckCircle2, DollarSign, FlaskConical, History, House, Leaf, Pencil, Plus, Power, PowerOff, RotateCcw, Trash2 } from "lucide-react";
+import { Award, BatteryCharging, CalendarClock, CheckCircle2, DollarSign, FlaskConical, History, House, Leaf, Pencil, Plus, Power, PowerOff, RotateCcw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -15,6 +15,7 @@ import { deviceState, TONE_DOT } from "../components/DevicesRow";
 import {
   DEVICE_ICONS, DEVICE_TONES, IconChip, Note, PageTitle, Panel, Row, Stat, Tag, btnBare, btnSolid, iconBtn,
 } from "../components/common";
+import { useCredits } from "../lib/credits";
 import { loadDemo, resetAll } from "../lib/demo";
 import { deviceById, TYPE_PRESETS, useDevices, type HomeDevice } from "../lib/devices";
 import { dollars, useRates } from "../lib/rates";
@@ -48,6 +49,7 @@ export default function MyHome() {
   const deviceOnly = tasks.some((t) => t.savedOn === "device");
   const { plan: rates } = useRates();
   const moneySaved = tasks.filter((t) => liveStatus(t) !== "cancelled").reduce((s, t) => s + Math.max(0, t.money ?? 0), 0);
+  const { total: credits, standing } = useCredits();
   const addDevice = () => setDialog({ open: true, editing: null });
 
   return (
@@ -58,12 +60,13 @@ export default function MyHome() {
           <Plus className="size-4" strokeWidth={2.5} aria-hidden="true" /> Add Device
         </Button>} />
 
-      <div className="grid animate-rise-in grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid animate-rise-in grid-cols-2 gap-3 lg:grid-cols-5">
         <Stat icon={Leaf} tone="green" label="CO₂ Avoided" value={grams(saved)} sub="All time, this device" />
         <Stat icon={DollarSign} tone="orange" label="Money Saved" value={dollars(moneySaved)}
           sub={rates.kind === "tou" ? "vs. running right away" : "Flat rate: timing doesn't change the bill"} />
         <Stat icon={BatteryCharging} tone="indigo" label="Upcoming" value={String(active.length)} sub="Tasks queued" />
         <Stat icon={CheckCircle2} tone="blue" label="Completed" value={String(history.filter((t) => liveStatus(t) === "done").length)} sub="Runs finished" />
+        <Stat icon={Award} tone="violet" label="Credits" value={String(credits)} sub={standing.level.name} accent={credits > 0} />
       </div>
 
       <Panel title="Upcoming" icon={CalendarClock} tone="indigo" bodyClassName="p-0 sm:p-0"

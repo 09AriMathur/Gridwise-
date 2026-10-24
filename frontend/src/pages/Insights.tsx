@@ -1,10 +1,11 @@
-import { CalendarClock, ChartLine, ChevronRight, Cloud, Factory, Leaf, Percent, Sparkles, TrendingDown, Zap } from "lucide-react";
+import { Award, CalendarClock, ChartLine, ChevronRight, Cloud, Factory, Leaf, Percent, Sparkles, TrendingDown, Zap } from "lucide-react";
 import { fmtHour } from "../lib/time";
 import type { MixHour } from "../lib/types";
 import BacktestPanel from "../components/BacktestPanel";
 import ForecastChart from "../components/ForecastChart";
 import { MixBar, MixList } from "../components/MixBar";
 import { IconChip, LEVEL_UI, Note, PageTitle, Panel, Stat } from "../components/common";
+import { LEVELS, useCredits } from "../lib/credits";
 import { useGrid } from "../lib/grid";
 import { fmtDayTime } from "../lib/time";
 
@@ -16,6 +17,7 @@ const STEPS = [
 
 export default function Insights() {
   const { forecast, now, error, mix, zoneName } = useGrid();
+  const { total: credits, standing } = useCredits();
   const t = Date.now();
   const next24 = (forecast?.points ?? []).filter((p) => { const d = Date.parse(p.ts) - t; return d >= -3_600_000 && d < 86_400_000; });
   const cleanest = next24.length ? next24.reduce((a, b) => (b.intensity < a.intensity ? b : a)) : null;
@@ -61,6 +63,41 @@ export default function Insights() {
           </div>
         </Panel>
       )}
+
+      <Panel title="Your Rewards" icon={Award} tone="violet" className="animate-rise-in"
+        right={<span className="text-footnote text-muted-foreground">{credits} credit{credits === 1 ? "" : "s"}</span>} rightOnMobile={false}>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <IconChip icon={Award} tone="violet" className="size-11" />
+            <div className="min-w-0 flex-1">
+              <p className="text-title-3">{standing.level.name}</p>
+              <p className="text-subheadline text-muted-foreground">
+                {standing.next
+                  ? `${standing.toNext} more credit${standing.toNext === 1 ? "" : "s"} to ${standing.next.name}`
+                  : "Top level reached. Nothing left to climb."}
+              </p>
+            </div>
+          </div>
+
+          <div className="h-2 overflow-hidden rounded-full bg-secondary" role="img"
+            aria-label={standing.next ? `${Math.round(standing.progress * 100)}% of the way to ${standing.next.name}` : "Top level reached"}>
+            <div className="h-full rounded-full bg-success transition-[width] duration-500"
+              style={{ width: `${Math.max(2, Math.round(standing.progress * 100))}%` }} />
+          </div>
+
+          <ul className="flex flex-wrap gap-x-4 gap-y-1">
+            {LEVELS.map((l) => (
+              <li key={l.name} className={l.min <= credits ? "text-footnote font-semibold text-success" : "text-footnote text-muted-foreground"}>
+                {l.name} <span className="tabular-nums opacity-70">{l.min}</span>
+              </li>
+            ))}
+          </ul>
+
+          <p className="text-footnote text-muted-foreground">
+            You earn one credit for every 10 g of CO₂ a run avoids, once you've actually run it.
+          </p>
+        </div>
+      </Panel>
 
       <BacktestPanel />
 

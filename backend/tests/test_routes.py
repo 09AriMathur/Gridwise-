@@ -9,6 +9,7 @@ import pytest
 from fastapi import HTTPException
 
 from src import database, grid_api, routes
+from src.credits import credits_for
 from src.routes import Availability, ScheduleRequest
 
 NOW = datetime(2026, 10, 24, 20, 30, tzinfo=timezone.utc)
@@ -236,3 +237,35 @@ def test_backtest_rejects_bad_days():
     with pytest.raises(HTTPException) as error:
         routes.post_backtest(routes.BacktestRequest(tasks=[], days=3))
     assert error.value.status_code == 422
+
+
+def test_schedule_reports_the_credits_the_window_earns(live):
+    """The credit figure matches the CO2 the chosen window avoids."""
+    live(hourly_from(datetime(2026, 10, 24, 20, tzinfo=timezone.utc), 400, 400, 100, 100, 400))
+
+    result = routes.post_schedule(frontend_request(120, NOW + timedelta(hours=5)))
+
+    assert result["credits"] == credits_for(result["grams_saved"])
+    assert result["credits"] > 0
+
+
+def test_a_window_that_saves_nothing_earns_no_credits(live):
+    """A flat forecast has nothing to gain, so there is nothing to reward."""
+    live(hourly_from(datetime(2026, 10, 24, 20, tzinfo=timezone.utc), 300, 300, 300, 300))
+
+    result = routes.post_schedule(frontend_request(120, NOW + timedelta(hours=4)))
+
+    assert result["co2_avoided_g"] == 0
+    assert result["credits"] == 0
+
+
+def test_levels_returns_the_whole_ladder_in_order():
+    result = routes.get_levels()
+
+    thresholds = [level["min_credits"] for level in result["levels"]]
+
+    assert result["levels"][0]["name"] == "Seedling"
+    assert result["levels"][-1]["name"] == "Old Growth"
+    assert thresholds == sorted(thresholds)
+    assert thresholds[0] == 0
+    assert result["grams_per_credit"] == 10

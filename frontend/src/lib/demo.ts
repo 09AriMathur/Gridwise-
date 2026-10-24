@@ -7,6 +7,7 @@ import data from "../data/demo-data.json";
 import { replaceDevices, TYPE_PRESETS, type DeviceType, type HomeDevice } from "./devices";
 import { replaceNotifications, type AppNotification } from "./notifications";
 import { moneySaved, replacePlan, type RatePlan } from "./rates";
+import { resetCredits } from "./credits";
 import { replaceTasks, type LocalTask } from "./tasks";
 
 type When = { minutesFromNow: number } | { day: number; time: string };
@@ -64,6 +65,7 @@ export function resetAll() {
   replaceNotifications([]);
   replaceDevices(null);
   replacePlan(null);
+  resetCredits();
   markSeeded();
 }
 

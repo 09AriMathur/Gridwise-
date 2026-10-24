@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type FormEvent } from "react";
-import { CalendarCheck, CheckCircle2, ChevronDown, ChevronRight, DollarSign, Gauge, House, Leaf, Loader2, Plus, Sparkles, Wand2 } from "lucide-react";
+import { Award, CalendarCheck, CheckCircle2, ChevronDown, ChevronRight, DollarSign, Gauge, House, Leaf, Loader2, Plus, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   DEVICE_ICONS, DEVICE_TONES, FieldError, IconChip, Note, PageTitle, Panel, TONE_TEXT, Tag, Toggle, btnSolid, fieldCls, labelCls, type Tone,
 } from "../components/common";
 import { api, ApiError } from "../lib/api";
+import { creditsFor } from "../lib/credits";
 import { deviceById, useDevices } from "../lib/devices";
 import { useGrid } from "../lib/grid";
 import { avgIntensity, findBestWindow, toPoints } from "../lib/optimizer";
@@ -351,6 +352,14 @@ export default function Dashboard() {
                     <ResultTile icon={DollarSign} tone="orange" label="Cost" value={dollars(money.window)} unit="same any time" />
                   ))}
                 </div>
+
+                {creditsFor(result.co2g) > 0 && (
+                  <p className="text-subheadline flex items-center gap-2 text-muted-foreground">
+                    <Award className="size-4 shrink-0 text-success" strokeWidth={2.5} aria-hidden="true" />
+                    Run it in this window to earn
+                    <span className="font-semibold text-success">+{creditsFor(result.co2g)} credits</span>
+                  </p>
+                )}
 
                 {result.windowMix && result.nowMix && <MixCompare now={result.nowMix} best={result.windowMix} />}
 

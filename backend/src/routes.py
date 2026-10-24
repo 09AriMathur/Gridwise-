@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from src import database, grid_api, reminders, sms
 from src.backtest import backtest
 from src.carbon import savings_vs_now
+from src.credits import GRAMS_PER_CREDIT, LEVELS, credits_for
 from src.mix import shares, summary, window_mix
 from src.devices import DEVICES, get_device
 from src.scheduler import best_window
@@ -191,7 +192,17 @@ def post_schedule(request: ScheduleRequest):
         "avg_intensity_best": window["intensity"],
         "avg_intensity_now": now_intensity,
         "co2_avoided_g": max(0.0, savings["grams_saved"]),
+        "credits": credits_for(savings["grams_saved"]),
         "forecast_source": "synthetic" if synthetic else "live",
+    }
+
+
+@router.get("/levels")
+def get_levels():
+    """The badge ladder, so the browser scores its own total against one source."""
+    return {
+        "grams_per_credit": GRAMS_PER_CREDIT,
+        "levels": [{"name": level.name, "min_credits": level.min_credits} for level in LEVELS],
     }
 
 
