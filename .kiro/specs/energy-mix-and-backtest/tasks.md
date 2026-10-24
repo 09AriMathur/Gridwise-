@@ -1,0 +1,23 @@
+# Implementation Plan: Energy Mix and Savings Backtest
+
+- [x] 1. `grid_api`: `fetch_mix`, `fetch_mix_forecast`, `fetch_history`, `zone_name` on v4
+  - _Requirements: 1.1, 3.4_
+- [x] 2. Pure `backend/src/mix.py` (`shares`, `window_mix`, `summary`)
+  - _Requirements: 1.1, 1.2, 2.1_
+- [x] 3. `GET /api/mix` (503 when unavailable); `window_mix` / `now_mix` on `/api/schedule`, best effort
+  - _Requirements: 1.1, 1.3, 2.1, 2.2_
+- [x] 4. SQLite history store in `database.py`; hourly save loop in `main.py`
+  - _Requirements: 3.4_
+- [x] 5. Pure `backend/src/backtest.py` reusing `best_window`; `next_ready`
+  - _Requirements: 3.1, 3.2, 3.3_
+- [x] 6. `GET /api/history`, `POST /api/backtest`
+  - _Requirements: 3.1, 3.3, 3.4_
+- [x] 7. Frontend: `MixBar` / `MixList` on Insights, `MixCompare` on the Dashboard, the zone name replacing "New England"
+  - _Requirements: 1.4, 1.5, 2.3_
+- [x] 8. Frontend: `BacktestPanel` (habit time, 24 h / week, per-device rows, money at the user's rates)
+  - _Requirements: 3.1, 3.4, 3.5_
+- [x] 9. Tests: mix, backtest, database and route cases; live verification
+- [ ] 10. Once 7 days of history are stored, confirm the "This Week" figure against a manual calculation
+  - _Requirements: 3.4_
+- [ ] 11. Optional: a mix forecast chart (low-carbon % by hour) on the Dashboard forecast
+  - _Requirements: 1.4_

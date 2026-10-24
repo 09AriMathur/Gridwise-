@@ -1,0 +1,26 @@
+# Implementation Plan: Device Reminders (In-App and SMS)
+
+- [x] 1. `turn_off` live status and `finished` task status; device tiles show "Turn it on/off now"
+  - _Requirements: 1.2, 1.6_
+- [x] 2. `lib/notifications.ts`: pure `dueReminders`, the fired-once record, late limits, browser notifications, inbox
+  - _Requirements: 1.1, 1.3, 1.4, 1.5_
+- [x] 3. `ReminderScheduler`, `ActionBanner`, `NotificationBell`, `useDeviceSwitch` in `components/Reminders.tsx`
+  - _Requirements: 1.1, 1.6, 1.7_
+- [x] 4. Twilio client `backend/src/sms.py` (REST via `requests`, status, readable errors)
+  - _Requirements: 2.6, 2.7_
+- [x] 5. Reminders table and `backend/src/reminders.py` (compose, schedule, dispatch with late skip)
+  - _Requirements: 2.1, 2.3, 2.5_
+- [x] 6. 30-second sending loop in the `main.py` lifespan; `/api/sms/*` and `/api/reminders*` routes
+  - _Requirements: 2.2, 2.7_
+- [x] 7. Frontend: book texts on schedule, cancel them on off/cancel/skip, `SmsPanel` with test text, saved number
+  - _Requirements: 2.1, 2.4, 2.8_
+- [x] 8. Tests: `tests/test_sms.py` (14 cases), `dueReminders` assertions, Playwright flows
+- [ ] 9. Twilio setup (account owner):
+  - get a Twilio number and set `TWILIO_FROM_NUMBER`
+  - verify recipient numbers (trial)
+  - complete A2P 10DLC or toll-free registration if US delivery requires it
+  - _Requirements: 2.1_
+- [ ] 10. Send a real test text end to end and confirm on/off delivery
+  - _Requirements: 2.1, 2.2_
+- [ ] 11. Optional: Web Push (service worker + VAPID) so browser alerts arrive with the tab closed
+  - _Requirements: 1.1_
