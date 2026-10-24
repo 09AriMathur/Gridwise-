@@ -1,9 +1,210 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
 
-:root { color-scheme: dark; }
-html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: #0b1120; }
+@custom-variant dark (&:is(.dark *));
+
+/* Apple Human Interface Guidelines, on the web.
+   - Clarity: Apple's type scale and semantic label colours.
+   - Deference: flat cards on grouped backgrounds; content over chrome.
+   - Depth: translucent blurred bars, elevated surfaces in dark mode.
+   Colours are the iOS system palette (light / dark variants). Light and dark
+   follow shadcn theming; ThemeProvider sets the class on <html>. */
+:root {
+  color-scheme: light;
+  --radius: 0.75rem;
+
+  /* iOS system colours */
+  --ios-indigo: #5856d6;  --ios-green: #34c759;  --ios-orange: #ff9500;
+  --ios-red: #ff3b30;     --ios-blue: #007aff;   --ios-teal: #30b0c7;
+  --ios-purple: #af52de;  --ios-yellow: #ffcc00; --ios-gray: #8e8e93;
+
+  --background: #f2f2f7;                          /* systemGroupedBackground */
+  --foreground: #000000;                          /* label */
+  --card: #ffffff;                                /* secondarySystemGroupedBackground */
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --primary: var(--ios-indigo);                   /* app tint */
+  --primary-foreground: #ffffff;
+  --secondary: rgb(118 118 128 / 0.12);           /* tertiarySystemFill: fields, chips */
+  --secondary-foreground: #000000;
+  --muted: rgb(118 118 128 / 0.12);
+  --muted-foreground: rgb(60 60 67 / 0.6);        /* secondaryLabel */
+  --tertiary-foreground: rgb(60 60 67 / 0.3);     /* tertiaryLabel */
+  --accent: rgb(88 86 214 / 0.12);
+  --accent-foreground: var(--ios-indigo);
+  --destructive: var(--ios-red);
+  --border: rgb(60 60 67 / 0.18);                 /* separator */
+  --input: rgb(60 60 67 / 0.18);
+  --ring: var(--ios-indigo);
+  --success: var(--ios-green);
+  --warning: var(--ios-orange);
+  --danger: var(--ios-red);
+  --info: var(--ios-blue);
+  --switch-on: var(--ios-green);
+  --material: rgb(249 249 249 / 0.78);            /* bar material */
+  --chart-1: var(--ios-indigo);
+  --chart-2: rgb(118 118 128 / 0.28);
+  --chart-3: rgb(118 118 128 / 0.14);
+  --chart-4: var(--ios-orange);
+  --chart-5: var(--ios-red);
+}
+
+.dark {
+  color-scheme: dark;
+  --ios-indigo: #5e5ce6;  --ios-green: #30d158;  --ios-orange: #ff9f0a;
+  --ios-red: #ff453a;     --ios-blue: #0a84ff;   --ios-teal: #40c8e0;
+  --ios-purple: #bf5af2;  --ios-yellow: #ffd60a; --ios-gray: #8e8e93;
+
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #1c1c1e;
+  --card-foreground: #ffffff;
+  --popover: #2c2c2e;                             /* elevated */
+  --popover-foreground: #ffffff;
+  --primary: var(--ios-indigo);
+  --primary-foreground: #ffffff;
+  --secondary: rgb(118 118 128 / 0.24);
+  --secondary-foreground: #ffffff;
+  --muted: rgb(118 118 128 / 0.24);
+  --muted-foreground: rgb(235 235 245 / 0.6);
+  --tertiary-foreground: rgb(235 235 245 / 0.3);
+  --accent: rgb(94 92 230 / 0.2);
+  --accent-foreground: #7d7aff;
+  --destructive: var(--ios-red);
+  --border: rgb(84 84 88 / 0.6);
+  --input: rgb(84 84 88 / 0.6);
+  --ring: var(--ios-indigo);
+  --success: var(--ios-green);
+  --warning: var(--ios-orange);
+  --danger: var(--ios-red);
+  --info: var(--ios-blue);
+  --switch-on: var(--ios-green);
+  --material: rgb(29 29 31 / 0.72);
+  --chart-1: var(--ios-indigo);
+  --chart-2: rgb(118 118 128 / 0.42);
+  --chart-3: rgb(118 118 128 / 0.2);
+  --chart-4: var(--ios-orange);
+  --chart-5: var(--ios-red);
+}
+
+@theme inline {
+  /* SF Pro on Apple platforms; Inter (closest open match) elsewhere. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter Variable", "Helvetica Neue", system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+  /* SF Rounded for numbers, like Health and Fitness. */
+  --font-rounded: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Inter Variable", system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-material: var(--material);
+  --color-ios-indigo: var(--ios-indigo);
+  --color-ios-green: var(--ios-green);
+  --color-ios-orange: var(--ios-orange);
+  --color-ios-red: var(--ios-red);
+  --color-ios-blue: var(--ios-blue);
+  --color-ios-teal: var(--ios-teal);
+  --color-ios-purple: var(--ios-purple);
+  --color-ios-yellow: var(--ios-yellow);
+  --color-ios-gray: var(--ios-gray);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  /* iOS sheet/spring-like curve. */
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    @apply font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* The reminder banner appears above the page content; without this,
+       Chrome's scroll anchoring hides it under the sticky header. */
+    overflow-anchor: none;
+  }
+  body {
+    margin: 0;
+    overflow-anchor: none;
+    @apply bg-background text-foreground;
+    font-size: 15px;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* Apple's type scale (iOS points, sized for the web). */
+@utility text-large-title { font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: -0.022em; }
+@utility text-title-1 { font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -0.02em; }
+@utility text-title-2 { font-size: 22px; line-height: 28px; font-weight: 700; letter-spacing: -0.018em; }
+@utility text-title-3 { font-size: 20px; line-height: 25px; font-weight: 600; letter-spacing: -0.016em; }
+@utility text-headline { font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: -0.014em; }
+@utility text-body { font-size: 17px; line-height: 22px; letter-spacing: -0.014em; }
+@utility text-callout { font-size: 16px; line-height: 21px; letter-spacing: -0.012em; }
+@utility text-subheadline { font-size: 15px; line-height: 20px; letter-spacing: -0.01em; }
+@utility text-footnote { font-size: 13px; line-height: 18px; letter-spacing: -0.004em; }
+@utility text-caption-1 { font-size: 12px; line-height: 16px; letter-spacing: 0; }
+@utility text-caption-2 { font-size: 11px; line-height: 13px; letter-spacing: 0.006em; }
+
+/* Translucent bar material (navigation bar, tab bar). */
+@utility material {
+  background: var(--material);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* Hairline separator, as thin as the display allows. */
+@utility hairline-b { box-shadow: inset 0 -0.5px 0 var(--border); }
+@utility hairline-t { box-shadow: inset 0 0.5px 0 var(--border); }
+
 .scrollbar-thin { scrollbar-width: thin; }
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-rise-in { animation: rise-in 0.5s var(--ease-ios) both; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }

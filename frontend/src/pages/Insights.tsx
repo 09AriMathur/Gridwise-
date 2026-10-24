@@ -1,11 +1,21 @@
-import { CalendarClock, Cloud, Leaf, TrendingDown } from "lucide-react";
+import { CalendarClock, ChartLine, ChevronRight, Cloud, Factory, Leaf, Percent, Sparkles, TrendingDown, Zap } from "lucide-react";
+import { fmtHour } from "../lib/time";
+import type { MixHour } from "../lib/types";
+import BacktestPanel from "../components/BacktestPanel";
 import ForecastChart from "../components/ForecastChart";
-import { LEVEL_UI, Note, Panel } from "../components/ui";
+import { MixBar, MixList } from "../components/MixBar";
+import { IconChip, LEVEL_UI, Note, PageTitle, Panel, Stat } from "../components/common";
 import { useGrid } from "../lib/grid";
 import { fmtDayTime } from "../lib/time";
 
+const STEPS = [
+  { icon: Cloud, tone: "blue" as const, title: "Read the grid", text: "We pull your grid's carbon intensity forecast and energy mix from Electricity Maps." },
+  { icon: CalendarClock, tone: "indigo" as const, title: "Find the window", text: "We check every start time that fits your deadline and available hours, and pick the cleanest." },
+  { icon: Leaf, tone: "green" as const, title: "Act on time", text: "Smart devices start automatically. For everything else, we text you when it's time." },
+];
+
 export default function Insights() {
-  const { forecast, now, error } = useGrid();
+  const { forecast, now, error, mix, zoneName } = useGrid();
   const t = Date.now();
   const next24 = (forecast?.points ?? []).filter((p) => { const d = Date.parse(p.ts) - t; return d >= -3_600_000 && d < 86_400_000; });
   const cleanest = next24.length ? next24.reduce((a, b) => (b.intensity < a.intensity ? b : a)) : null;
@@ -14,62 +24,88 @@ export default function Insights() {
 
   return (
     <div className="space-y-5 sm:space-y-6">
-      <section>
-        <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">Grid insights</h1>
-        <p className="mt-1 text-sm text-slate-400 sm:text-base">How clean New England's electricity will be over the next day.</p>
-      </section>
+      <PageTitle kicker={zoneName} title="Insights"
+        sub="How clean the electricity will be over the next 24 hours." />
 
       {error && !forecast && <Note tone="warn">Forecast unavailable right now ({error}).</Note>}
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Right now" value={now ? `${Math.round(now.intensity)} g` : "–"} sub={now ? LEVEL_UI[now.level].text : ""} />
-        <Stat label="Cleanest hour" value={cleanest ? `${Math.round(cleanest.intensity)} g` : "–"} sub={cleanest ? fmtDayTime(cleanest.ts) : ""} good />
-        <Stat label="Dirtiest hour" value={dirtiest ? `${Math.round(dirtiest.intensity)} g` : "–"} sub={dirtiest ? fmtDayTime(dirtiest.ts) : ""} />
-        <Stat label="Clean vs dirty" value={spread !== null ? `${spread}%` : "–"} sub="less CO₂ per kWh" good />
+      <div className="grid animate-rise-in grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat icon={now ? LEVEL_UI[now.level].icon : Cloud} tone={now ? LEVEL_UI[now.level].tone : "gray"} label="Right Now"
+          value={now ? `${Math.round(now.intensity)} g` : "–"} sub={now ? LEVEL_UI[now.level].text : ""} />
+        <Stat icon={Leaf} tone="green" label="Cleanest" value={cleanest ? `${Math.round(cleanest.intensity)} g` : "–"} sub={cleanest ? fmtDayTime(cleanest.ts) : ""} />
+        <Stat icon={Factory} tone="red" label="Dirtiest" value={dirtiest ? `${Math.round(dirtiest.intensity)} g` : "–"} sub={dirtiest ? fmtDayTime(dirtiest.ts) : ""} />
+        <Stat icon={Percent} tone="indigo" label="Difference" value={spread !== null ? `${spread}%` : "–"} sub="less CO₂ per kWh" accent={spread !== null && spread > 0} />
       </div>
 
-      <Panel title="Next 24 hours" right={<span className="text-xs text-slate-500">gCO₂/kWh</span>}>
-        {next24.length > 1 ? <ForecastChart points={next24} plan={null} /> : <p className="text-sm text-slate-400">Waiting for forecast data…</p>}
+      <Panel title="Next 24 Hours" icon={ChartLine} tone="blue" className="animate-rise-in"
+        right={<span className="text-footnote text-muted-foreground">gCO₂/kWh</span>}>
+        {next24.length > 1 ? <ForecastChart points={next24} plan={null} /> : <p className="text-subheadline text-muted-foreground">Waiting for forecast data…</p>}
       </Panel>
 
-      <Panel title="How GridWise works">
-        <ol className="grid grid-cols-1 gap-3 md:grid-cols-3">
-          {[
-            { icon: Cloud, title: "Read the grid", text: "We pull New England's carbon intensity forecast from Electricity Maps." },
-            { icon: CalendarClock, title: "Find the window", text: "We check every start time that fits your deadline and available hours, and pick the cleanest." },
-            { icon: Leaf, title: "Act at the right time", text: "Smart devices start automatically. For everything else, we text you when it's time." },
-          ].map(({ icon: Icon, title, text }, i) => (
-            <li key={title} className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500/15 text-emerald-300"><Icon className="h-4 w-4" aria-hidden="true" /></span>
-                <span className="text-xs text-slate-500">Step {i + 1}</span>
+      {mix && (
+        <Panel title="What's Powering the Grid" icon={Zap} tone="orange" className="animate-rise-in"
+          right={<span className="text-footnote text-muted-foreground">Right now · {mix.zoneName}</span>} rightOnMobile={false}>
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-footnote font-semibold uppercase tracking-[0.02em] text-success">Low-carbon</p>
+                <p className="font-rounded text-[34px] font-bold leading-[41px] tabular-nums">{Math.round(mix.now.lowCarbonPct)}%</p>
+                <p className="text-footnote text-muted-foreground">
+                  {Math.round(mix.now.fossilPct)}% fossil · {Math.round(mix.now.importsPct)}% imported
+                </p>
               </div>
-              <p className="font-semibold text-white">{title}</p>
-              <p className="mt-1 text-sm text-slate-400">{text}</p>
+              {mix.forecast.length > 1 && <LowCarbonSpark hours={mix.forecast} />}
+            </div>
+            <MixBar mix={mix.now} legend={false} height="h-4" />
+            <MixList mix={mix.now} />
+          </div>
+        </Panel>
+      )}
+
+      <BacktestPanel />
+
+      <Panel title="How It Works" icon={Sparkles} tone="violet" className="animate-rise-in">
+        <ol className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          {STEPS.map(({ icon, tone, title, text }, i) => (
+            <li key={title} className="rounded-xl bg-secondary/70 p-4">
+              <div className="flex items-center justify-between">
+                <IconChip icon={icon} tone={tone} className="size-10" />
+                <span className="text-footnote font-semibold text-muted-foreground">Step {i + 1}</span>
+              </div>
+              <p className="text-headline mt-3">{title}</p>
+              <p className="text-subheadline mt-1 text-muted-foreground">{text}</p>
             </li>
           ))}
         </ol>
       </Panel>
 
-      <Panel>
-        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <TrendingDown className="h-6 w-6 text-emerald-300" aria-hidden="true" />
-            <p className="text-slate-200">Shifting heavy appliances to the cleanest hours cuts their emissions without buying a battery.</p>
-          </div>
-          <a href="#/" className="shrink-0 rounded-xl bg-emerald-500 px-4 py-2.5 font-semibold text-slate-950 hover:bg-emerald-400">Plan a task</a>
+      <a href="#/" className="animate-rise-in flex items-center gap-3 rounded-2xl bg-card p-4 transition-opacity active:opacity-70">
+        <IconChip icon={TrendingDown} tone="green" className="size-11" />
+        <div className="min-w-0 flex-1">
+          <p className="text-headline">Shift heavy appliances, skip the battery</p>
+          <p className="text-subheadline text-muted-foreground">Running them in the cleanest hours cuts their emissions.</p>
         </div>
-      </Panel>
+        <ChevronRight className="size-5 shrink-0 text-tertiary-foreground" strokeWidth={2.5} aria-hidden="true" />
+      </a>
     </div>
   );
 }
 
-function Stat({ label, value, sub, good = false }: { label: string; value: string; sub: string; good?: boolean }) {
+// Next 24 hours of low-carbon share, as small bars (taller = cleaner mix).
+function LowCarbonSpark({ hours }: { hours: MixHour[] }) {
+  const next = hours.slice(0, 24);
+  const best = next.reduce((a, b) => (b.lowCarbonPct > a.lowCarbonPct ? b : a));
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-4">
-      <p className="text-xs text-slate-400">{label}</p>
-      <p className={`mt-1 text-2xl font-semibold ${good ? "text-emerald-300" : "text-white"}`}>{value}</p>
-      <p className="mt-0.5 truncate text-xs text-slate-500">{sub}</p>
+    <div className="min-w-0">
+      <p className="text-footnote mb-1 text-right text-muted-foreground">
+        Next 24 h · cleanest mix {fmtHour(Date.parse(best.ts))} ({Math.round(best.lowCarbonPct)}%)
+      </p>
+      <div className="flex h-10 items-end justify-end gap-[2px]" role="img" aria-label="Low-carbon share over the next 24 hours">
+        {next.map((h) => (
+          <span key={h.ts} className="w-1.5 rounded-t-[2px] bg-success" title={`${fmtHour(Date.parse(h.ts))}: ${Math.round(h.lowCarbonPct)}% low-carbon`}
+            style={{ height: `${Math.max(6, h.lowCarbonPct)}%`, opacity: h === best ? 1 : 0.45 }} />
+        ))}
+      </div>
     </div>
   );
 }

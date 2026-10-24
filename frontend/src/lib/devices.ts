@@ -62,6 +62,12 @@ function write(list: HomeDevice[]) {
   window.dispatchEvent(new Event(EVENT));
 }
 
+/** Replace the whole device list (demo data, resets). */
+export function replaceDevices(list: HomeDevice[] | null) {
+  if (list === null) { try { localStorage.removeItem(KEY); } catch { /* storage blocked */ } window.dispatchEvent(new Event(EVENT)); return; }
+  write(list);
+}
+
 export function deviceById(list: HomeDevice[], id: string): HomeDevice {
   return list.find((d) => d.id === id) ?? list[0] ?? FALLBACK_DEVICE;
 }

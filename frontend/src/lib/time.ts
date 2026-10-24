@@ -53,10 +53,11 @@ export function dailySpan(from: string, until: string, now: number): { start: nu
   return { start: s.getTime(), end: e.getTime() };
 }
 
+// Apple style: "5PM" for compact hour labels (as in Weather), "5:38 PM" for times.
 export function fmtHour(ms: number): string {
-  return new Date(ms).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric" }).replace(" ", "").toLowerCase();
+  return new Date(ms).toLocaleTimeString("en-US", { timeZone: TZ, hour: "numeric" }).replace(" ", "");
 }
 
 export function fmtClock(ms: number): string {
-  return new Date(ms).toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }).toLowerCase();
+  return new Date(ms).toLocaleTimeString("en-US", { timeZone: TZ, hour: "numeric", minute: "2-digit" });
 }

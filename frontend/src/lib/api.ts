@@ -1,5 +1,5 @@
 // The ONLY file that knows backend URLs and response shapes.
-import type { Appliance, Device, Forecast, GridNow, Level, Plan, Task, TaskInput } from "./types";
+import type { Appliance, Backtest, BacktestInput, Device, Forecast, GridMix, GridNow, Level, Mix, Plan, SmsStatus, Task, TaskInput } from "./types";
 
 const BASE = (import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
 
@@ -9,6 +9,11 @@ export const ROUTES = {
   health: "/health" as string | null,
   gridNow: null as string | null,                 // not built: derived from the forecast instead
   forecast: (hours: number) => `/api/forecast?hours=${hours}`,
+  mix: "/api/mix",
+  smsStatus: "/api/sms/status",
+  smsTest: "/api/sms/test",
+  reminders: "/api/reminders",
+  backtest: "/api/backtest",
   appliances: null as string | null,              // not built: form uses built-in presets
   devices: "/api/devices" as string | null,
   createDevice: null as string | null,           // not built yet: devices are saved in the browser
@@ -114,6 +119,23 @@ async function gridNowFromForecast(): Promise<GridNow> {
   return { intensity: closest.intensity, level: levelFrom(null, closest.intensity), timestamp: closest.ts, source: f.source };
 }
 
+function mapMix(b: any): Mix | null {
+  if (!b || !Array.isArray(b.sources)) return null;
+  return {
+    sources: b.sources.map((s: any) => ({ key: String(s.key), label: String(s.label), mw: Number(s.mw), percent: Number(s.percent), lowCarbon: !!s.low_carbon })),
+    lowCarbonPct: Number(b.low_carbon_pct ?? 0), fossilPct: Number(b.fossil_pct ?? 0), importsPct: Number(b.imports_pct ?? 0), totalMw: Number(b.total_mw ?? 0),
+  };
+}
+
+function mapGridMix(b: any): GridMix {
+  const now = mapMix(b.now);
+  if (!now) throw new ApiError("The grid's energy mix isn't available right now.", 503, "no_mix");
+  return {
+    zone: b.zone, zoneName: b.zone_name ?? b.zone, now,
+    forecast: (b.forecast ?? []).map((h: any) => ({ ts: h.datetime, lowCarbonPct: Number(h.low_carbon_pct), fossilPct: Number(h.fossil_pct), top: h.top ?? null })),
+  };
+}
+
 function mapPlan(b: any): Plan {
   return {
     id: b.id,
@@ -123,6 +145,8 @@ function mapPlan(b: any): Plan {
     avg_intensity_now: Number(b.avg_intensity_now ?? b.now_intensity ?? b.baseline_intensity ?? 0),
     co2_avoided_g: Number(b.co2_avoided_g ?? b.co2_saved_g ?? b.co2_avoided ?? b.savings_g ?? 0),
     forecast_source: b.forecast_source ?? b.source ?? "live",
+    window_mix: mapMix(b.window_mix),
+    now_mix: mapMix(b.now_mix),
     status: b.status,
   };
 }
@@ -131,6 +155,16 @@ export const api = {
   health: () => (ROUTES.health ? request<any>(ROUTES.health) : notBuilt("Health check")),
   gridNow: () => (ROUTES.gridNow ? request<any>(ROUTES.gridNow).then(mapGridNow) : gridNowFromForecast()),
   forecast: (hours = 24) => request<any>(ROUTES.forecast(hours)).then(mapForecast),
+  mix: () => request<any>(ROUTES.mix).then(mapGridMix),
+  smsStatus: () => request<SmsStatus>(ROUTES.smsStatus, {}, 20000),
+  smsTest: (phone: string) => request<{ sent: boolean }>(ROUTES.smsTest, { method: "POST", body: JSON.stringify({ phone }) }, 20000),
+  // Texts at the start and end of a manual device's window; the backend sends them even if no browser is open.
+  scheduleTexts: (r: { task_id: string; phone: string; device_name: string; start: string; end: string }) =>
+    request<{ reminders: { kind: string; send_at: string }[]; trial: boolean | null }>(ROUTES.reminders,
+      { method: "POST", body: JSON.stringify({ ...r, tz_offset_min: new Date().getTimezoneOffset() }) }),
+  cancelTexts: (taskId: string, kinds: ("on" | "off")[] = ["on", "off"]) =>
+    request<{ cancelled: number }>(`${ROUTES.reminders}/${encodeURIComponent(taskId)}/cancel`, { method: "POST", body: JSON.stringify({ kinds }) }),
+  backtest: (input: BacktestInput) => request<Backtest>(ROUTES.backtest, { method: "POST", body: JSON.stringify(input) }, 30000),
   appliances: () => (ROUTES.appliances
     ? request<any>(ROUTES.appliances).then((b) => (b.appliances ?? b) as Appliance[])
     : notBuilt("Appliance list")),

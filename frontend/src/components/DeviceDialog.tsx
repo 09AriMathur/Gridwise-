@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { X } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "../lib/api";
 import { MAX_DEVICES, TYPE_PRESETS, type DeviceType, type HomeDevice } from "../lib/devices";
-import { Toggle, fieldCls, labelCls } from "./ui";
+import { cn } from "@/lib/utils";
+import { DEVICE_ICONS, DEVICE_TONES, FieldError, IconChip, Toggle, btnLine, btnSolid, fieldCls, labelCls } from "./common";
 
 type Props = {
   open: boolean;
@@ -15,7 +21,7 @@ type Props = {
 const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
 
 export default function DeviceDialog({ open, existing, names, onClose, onSave }: Props) {
-  const ref = useRef<HTMLDialogElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState("");
   const [type, setType] = useState<DeviceType>("ev");
   const [smart, setSmart] = useState(true);
@@ -26,15 +32,11 @@ export default function DeviceDialog({ open, existing, names, onClose, onSave }:
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const d = ref.current;
-    if (!d) return;
-    if (open && !d.open) {
-      const src = existing;
-      setName(src?.name ?? ""); setType(src?.type ?? "ev"); setSmart(src?.smart ?? TYPE_PRESETS.ev.smart);
-      setHours(String(src?.hours ?? TYPE_PRESETS.ev.hours)); setKwh(String(src?.kwh ?? TYPE_PRESETS.ev.kwh));
-      setPlugHost(src?.plugHost ?? ""); setErrors({});
-      d.showModal();
-    } else if (!open && d.open) d.close();
+    if (!open) return;
+    const src = existing;
+    setName(src?.name ?? ""); setType(src?.type ?? "ev"); setSmart(src?.smart ?? TYPE_PRESETS.ev.smart);
+    setHours(String(src?.hours ?? TYPE_PRESETS.ev.hours)); setKwh(String(src?.kwh ?? TYPE_PRESETS.ev.kwh));
+    setPlugHost(src?.plugHost ?? ""); setErrors({});
   }, [open, existing]);
 
   function pickType(t: DeviceType) {
@@ -70,69 +72,83 @@ export default function DeviceDialog({ open, existing, names, onClose, onSave }:
   }
 
   const clear = (k: string) => setErrors((e) => { if (!e[k]) return e; const n = { ...e }; delete n[k]; return n; });
-  const err = (k: string) => errors[k] ? <p className="mt-1 text-sm text-rose-300">{errors[k]}</p> : null;
+  const TypeIcon = DEVICE_ICONS[type];
 
   return (
-    <dialog ref={ref} onClose={onClose} onCancel={onClose}
-      className="m-auto w-[min(92vw,30rem)] rounded-2xl border border-white/10 bg-slate-900 p-0 text-slate-100 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm">
-      <form onSubmit={submit} noValidate className="space-y-4 p-5 sm:p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">{existing ? "Edit device" : "Add a device"}</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="grid h-9 w-9 place-items-center rounded-lg text-slate-400 hover:bg-white/10 hover:text-white">
-            <X className="h-5 w-5" aria-hidden="true" />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="gap-0 rounded-[22px] bg-popover p-0 ring-0 shadow-[0_20px_60px_rgb(0_0_0/0.25)] sm:max-w-md"
+        onOpenAutoFocus={(e) => { e.preventDefault(); nameRef.current?.focus(); }}>
+        <form onSubmit={submit} noValidate className="space-y-4 p-5 sm:p-6">
+          <DialogHeader className="flex-row items-center gap-3.5 space-y-0 pr-8 text-left">
+            <IconChip icon={TypeIcon} tone={DEVICE_TONES[type]} className="size-12" />
+            <div>
+              <DialogTitle className="text-title-3">{existing ? "Edit device" : "Add a device"}</DialogTitle>
+              <DialogDescription className="text-footnote">{existing ? "Update how GridWise plans for it." : "GridWise plans its runs around the cleanest hours."}</DialogDescription>
+            </div>
+          </DialogHeader>
 
-        <div>
-          <label htmlFor="dev-type" className={labelCls}>Type</label>
-          <select id="dev-type" className={fieldCls} value={type} onChange={(e) => pickType(e.target.value as DeviceType)}>
-            {(Object.keys(TYPE_PRESETS) as DeviceType[]).map((t) => <option key={t} value={t}>{TYPE_PRESETS[t].label}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="dev-name" className={labelCls}>Name</label>
-          <input id="dev-name" className={fieldCls} value={name} maxLength={40} placeholder="e.g. Garage EV charger"
-            onChange={(e) => { setName(e.target.value); clear("name"); }} aria-invalid={!!errors.name} autoFocus />
-          {err("name")}
-        </div>
-
-        <Toggle id="dev-smart" label="Smart plug (starts automatically)" checked={smart} onChange={setSmart} />
-        <p className="-mt-2 text-xs text-slate-500">
-          {smart ? "GridWise switches it on at the cleanest time." : "GridWise sends you a reminder when it's time to start it."}
-        </p>
-
-        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="dev-hours" className={labelCls}>Run time (hours)</label>
-            <input id="dev-hours" type="number" inputMode="decimal" step="0.25" className={fieldCls}
-              value={hours} onChange={(e) => { setHours(e.target.value); clear("hours"); }} aria-invalid={!!errors.hours} />
-            {err("hours")}
+            <Label htmlFor="dev-type" className={labelCls}>Type</Label>
+            <Select value={type} onValueChange={(v) => pickType(v as DeviceType)}>
+              <SelectTrigger id="dev-type" className={cn(fieldCls, "w-full data-[size=default]:h-11")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl p-1 shadow-[0_10px_40px_rgb(0_0_0/0.16)]">
+                {(Object.keys(TYPE_PRESETS) as DeviceType[]).map((t) => {
+                  const Icon = DEVICE_ICONS[t];
+                  return (
+                    <SelectItem key={t} value={t} className="rounded-md py-2 text-[15px]">
+                      <Icon className="text-muted-foreground" aria-hidden="true" /> {TYPE_PRESETS[t].label}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
           </div>
-          <div>
-            <label htmlFor="dev-kwh" className={labelCls}>Energy per run (kWh)</label>
-            <input id="dev-kwh" type="number" inputMode="decimal" step="0.1" className={fieldCls}
-              value={kwh} onChange={(e) => { setKwh(e.target.value); clear("kwh"); }} aria-invalid={!!errors.kwh} />
-            {err("kwh")}
-          </div>
-        </div>
 
-        {smart && (
           <div>
-            <label htmlFor="dev-ip" className={labelCls}>Smart plug IP address <span className="font-normal text-slate-500">(optional)</span></label>
-            <input id="dev-ip" inputMode="decimal" className={fieldCls} placeholder="192.168.1.42 (leave blank to simulate)"
-              value={plugHost} onChange={(e) => { setPlugHost(e.target.value); clear("plugHost"); }} aria-invalid={!!errors.plugHost} />
-            {err("plugHost")}
+            <Label htmlFor="dev-name" className={labelCls}>Name</Label>
+            <Input ref={nameRef} id="dev-name" className={fieldCls} value={name} maxLength={40} placeholder="e.g. Garage EV charger"
+              onChange={(e) => { setName(e.target.value); clear("name"); }} aria-invalid={!!errors.name} />
+            <FieldError>{errors.name}</FieldError>
           </div>
-        )}
 
-        <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
-          <button type="button" onClick={onClose} className="min-h-11 rounded-xl border border-white/15 px-4 font-medium text-slate-200 hover:bg-white/5">Cancel</button>
-          <button type="submit" disabled={saving} className="min-h-11 rounded-xl bg-emerald-500 px-5 font-semibold text-slate-950 hover:bg-emerald-400 disabled:opacity-60">
-            {existing ? "Save changes" : "Add device"}
-          </button>
-        </div>
-      </form>
-    </dialog>
+          <Toggle id="dev-smart" label="Smart plug" checked={smart} onChange={setSmart}
+            hint={smart ? "GridWise switches it on at the cleanest time." : "GridWise reminds you when it's time to start it."} />
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="dev-hours" className={labelCls}>Run time (hours)</Label>
+              <Input id="dev-hours" type="number" inputMode="decimal" step="0.25" className={fieldCls}
+                value={hours} onChange={(e) => { setHours(e.target.value); clear("hours"); }} aria-invalid={!!errors.hours} />
+              <FieldError>{errors.hours}</FieldError>
+            </div>
+            <div>
+              <Label htmlFor="dev-kwh" className={labelCls}>Energy (kWh)</Label>
+              <Input id="dev-kwh" type="number" inputMode="decimal" step="0.1" className={fieldCls}
+                value={kwh} onChange={(e) => { setKwh(e.target.value); clear("kwh"); }} aria-invalid={!!errors.kwh} />
+              <FieldError>{errors.kwh}</FieldError>
+            </div>
+          </div>
+
+          {smart && (
+            <div>
+              <Label htmlFor="dev-ip" className={labelCls}>Smart plug IP address <span className="opacity-70">(optional)</span></Label>
+              <Input id="dev-ip" inputMode="decimal" className={fieldCls} placeholder="192.168.1.42 (leave blank to simulate)"
+                value={plugHost} onChange={(e) => { setPlugHost(e.target.value); clear("plugHost"); }} aria-invalid={!!errors.plugHost} />
+              <FieldError>{errors.plugHost}</FieldError>
+            </div>
+          )}
+
+          <DialogFooter className="mx-0 mb-0 gap-2 border-0 bg-transparent p-0 pt-2">
+            <Button type="button" variant="outline" className={cn(btnLine, "sm:flex-1")} onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={saving} className={cn(btnSolid, "sm:flex-1")}>
+              {saving && <Loader2 className="animate-spin" aria-hidden="true" />}
+              {existing ? "Save changes" : "Add device"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,7 +1,9 @@
 import { Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { HomeDevice } from "../lib/devices";
 import { fmtClock } from "../lib/time";
 import { liveStatus, type LocalTask } from "../lib/tasks";
+import { DEVICE_ICONS, DEVICE_TONES, IconChip } from "./common";
 
 type Tone = "green" | "orange" | "idle";
 
@@ -13,38 +15,47 @@ export function deviceState(deviceId: string, tasks: LocalTask[]): { tone: Tone;
   const s = liveStatus(active);
   const at = fmtClock(Date.parse(active.start));
   if (s === "running") return { tone: "green", line: `Running until ${fmtClock(Date.parse(active.end))}`, pulse: true };
-  if (s === "started") return { tone: "green", line: "Started, thanks!" };
-  if (s === "due") return { tone: "orange", line: "Start it now", pulse: true };
-  return active.smart ? { tone: "green", line: `Auto start ${at}` } : { tone: "orange", line: `Notify at ${at}` };
+  if (s === "started") return { tone: "green", line: `On · turn off at ${fmtClock(Date.parse(active.end))}` };
+  if (s === "due") return { tone: "orange", line: "Turn it on now", pulse: true };
+  if (s === "turn_off") return { tone: "orange", line: "Turn it off now", pulse: true };
+  return active.smart ? { tone: "green", line: `Auto start ${at}` } : { tone: "orange", line: `Reminder at ${at}` };
 }
 
-const TONE: Record<Tone, string> = {
-  green: "border-emerald-400/40 bg-emerald-500/90 text-slate-950 hover:bg-emerald-400",
-  orange: "border-orange-300/40 bg-orange-500/90 text-slate-950 hover:bg-orange-400",
-  idle: "border-white/10 bg-slate-800/80 text-slate-200 hover:bg-slate-700",
-};
+export const TONE_DOT: Record<Tone, string> = { green: "bg-success", orange: "bg-warning", idle: "bg-ios-gray/50" };
+const TONE_TEXT: Record<Tone, string> = { green: "text-success", orange: "text-warning", idle: "text-muted-foreground" };
 
 type Props = { devices: HomeDevice[]; tasks: LocalTask[]; onPick: (id: string) => void; onAdd: () => void };
 
+// Accessory tiles, like the Home app.
 export default function DevicesRow({ devices, tasks, onPick, onAdd }: Props) {
   return (
-    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       {devices.map((d) => {
         const st = deviceState(d.id, tasks);
+        const Icon = DEVICE_ICONS[d.type] ?? DEVICE_ICONS.other;
         return (
           <li key={d.id}>
             <button type="button" onClick={() => onPick(d.id)}
-              className={`flex min-h-[84px] w-full flex-col items-center justify-center rounded-2xl border px-4 py-4 text-center transition active:scale-[0.98] ${TONE[st.tone]} ${st.pulse ? "animate-pulse" : ""}`}>
-              <span className="text-base font-semibold">{d.name}</span>
-              <span className="text-sm opacity-90">{st.line}</span>
+              className="flex h-full min-h-[120px] w-full flex-col justify-between gap-4 rounded-2xl bg-card p-3.5 text-left transition-transform duration-200 ease-ios active:scale-[0.97] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/40">
+              <IconChip icon={Icon} tone={DEVICE_TONES[d.type] ?? "gray"} variant="tint" className="size-10 rounded-full" />
+              <span className="min-w-0">
+                <span className="text-subheadline block truncate font-semibold">{d.name}</span>
+                <span className={cn("text-footnote flex items-center gap-1.5", TONE_TEXT[st.tone])}>
+                  <span className={cn("size-1.5 shrink-0 rounded-full", TONE_DOT[st.tone], st.pulse && "animate-pulse")} aria-hidden="true" />
+                  <span className="truncate">{st.line}</span>
+                </span>
+              </span>
             </button>
           </li>
         );
       })}
       <li>
         <button type="button" onClick={onAdd}
-          className="flex min-h-[84px] w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 px-4 py-4 text-slate-300 transition hover:border-emerald-400/60 hover:text-emerald-300">
-          <Plus className="h-5 w-5" aria-hidden="true" /> Add device
+          className="flex h-full min-h-[120px] w-full flex-col justify-between gap-4 rounded-2xl border-[1.5px] border-dashed border-border p-3.5 text-left text-primary transition-transform duration-200 ease-ios active:scale-[0.97] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/40">
+          <span className="grid size-10 place-items-center rounded-full bg-accent">
+            <Plus className="size-5" strokeWidth={2.5} aria-hidden="true" />
+          </span>
+          <span className="text-subheadline font-semibold">Add Device</span>
         </button>
       </li>
     </ul>

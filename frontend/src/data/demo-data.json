@@ -1,0 +1,38 @@
+{
+  "_about": "GridWise demo data. Loaded automatically the first time the app opens in a browser (set VITE_DEMO_DATA=false to turn that off), or from My Home > Demo Data. Times are relative to when it loads: {\"minutesFromNow\": n} or {\"day\": d, \"time\": \"HH:MM\"} where day 0 is today, 1 tomorrow, -1 yesterday. CO2 is kWh x (baseline - best); money is worked out from the rates. Nothing here is real usage.",
+  "rates": {
+    "kind": "tou",
+    "peak": 0.38,
+    "offPeak": 0.19,
+    "peakStart": "14:00",
+    "peakEnd": "20:00",
+    "weekdaysOnly": false
+  },
+  "devices": [
+    { "id": "ev", "name": "Car charger", "type": "ev", "smart": true, "hours": 3, "kwh": 10 },
+    { "id": "washer", "name": "Washing machine", "type": "washer", "smart": false, "hours": 1, "kwh": 0.5 },
+    { "id": "dishwasher", "name": "Dishwasher", "type": "dishwasher", "smart": false, "hours": 2, "kwh": 1.5 },
+    { "id": "dryer", "name": "Clothes dryer", "type": "dryer", "smart": false, "hours": 1, "kwh": 3 },
+    { "id": "demo-water", "name": "Water heater", "type": "water_heater", "smart": true, "hours": 2, "kwh": 4 },
+    { "id": "demo-heater", "name": "Space heater", "type": "space_heater", "smart": false, "hours": 2, "kwh": 3 }
+  ],
+  "tasks": [
+    { "id": "demo-ev", "appliance": "ev", "start": { "day": 1, "time": "01:00" }, "hours": 3, "best": 248, "baseline": 318, "status": "scheduled", "plannedAt": { "day": 0, "time": "17:30" }, "_note": "smart plug, starts itself overnight" },
+    { "id": "demo-washer", "appliance": "washer", "start": { "minutesFromNow": -4 }, "hours": 1, "best": 262, "baseline": 309, "status": "scheduled", "plannedAt": { "minutesFromNow": -180 }, "_note": "window is now: 'turn it on' reminder" },
+    { "id": "demo-dish", "appliance": "dishwasher", "start": { "minutesFromNow": -130 }, "hours": 2, "best": 255, "baseline": 312, "status": "started", "plannedAt": { "minutesFromNow": -360 }, "_note": "turned on, window ended: 'turn it off' reminder" },
+    { "id": "demo-dryer", "appliance": "dryer", "start": { "day": 1, "time": "11:00" }, "hours": 1, "best": 239, "baseline": 305, "status": "scheduled", "plannedAt": { "day": 0, "time": "17:30" } },
+    { "id": "demo-water-up", "appliance": "demo-water", "start": { "day": 1, "time": "03:00" }, "hours": 2, "best": 244, "baseline": 320, "status": "scheduled", "plannedAt": { "day": 0, "time": "17:30" } },
+    { "id": "demo-h1", "appliance": "ev", "start": { "day": -1, "time": "00:30" }, "hours": 3, "best": 241, "baseline": 322, "status": "scheduled", "plannedAt": { "day": -2, "time": "17:00" } },
+    { "id": "demo-h2", "appliance": "dishwasher", "start": { "day": -2, "time": "22:00" }, "hours": 2, "best": 251, "baseline": 308, "status": "finished", "plannedAt": { "day": -2, "time": "18:00" } },
+    { "id": "demo-h3", "appliance": "washer", "start": { "day": -3, "time": "23:00" }, "hours": 1, "best": 258, "baseline": 301, "status": "finished", "plannedAt": { "day": -3, "time": "16:30" } },
+    { "id": "demo-h4", "appliance": "demo-heater", "start": { "day": -1, "time": "05:00" }, "hours": 2, "best": 233, "baseline": 296, "status": "finished", "plannedAt": { "day": -2, "time": "19:00" } },
+    { "id": "demo-h5", "appliance": "demo-water", "start": { "day": -2, "time": "02:00" }, "hours": 2, "best": 246, "baseline": 315, "status": "scheduled", "plannedAt": { "day": -3, "time": "15:00" } },
+    { "id": "demo-h6", "appliance": "dryer", "start": { "day": -1, "time": "21:00" }, "hours": 1, "best": 260, "baseline": 299, "status": "cancelled", "plannedAt": { "day": -1, "time": "17:00" } }
+  ],
+  "notifications": [
+    { "id": "demo-h2:off", "taskId": "demo-h2", "kind": "off", "title": "Turn off your dishwasher", "body": "Its clean window ended. Switch it off if it's still running.", "at": { "day": -1, "time": "00:05" }, "read": true },
+    { "id": "demo-h2:on", "taskId": "demo-h2", "kind": "on", "title": "Turn on your dishwasher now", "body": "The grid is at its cleanest for the next 2 hours.", "at": { "day": -2, "time": "22:00" }, "read": true }
+  ],
+  "_firedNote": "Reminders already handled, so they don't fire again. The washer and dishwasher reminders are left out on purpose so the app raises them live.",
+  "firedReminders": ["demo-h2:on", "demo-h2:off", "demo-h3:on", "demo-h4:on", "demo-h4:off"]
+}

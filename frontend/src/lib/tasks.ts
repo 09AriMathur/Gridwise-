@@ -10,12 +10,17 @@ export type LocalTask = {
   co2g: number;
   best: number;
   baseline: number;
-  status: "scheduled" | "started" | "cancelled";
+  money?: number;      // $ saved vs. running now, at the user's rates when scheduled
+  sms?: string;        // phone the backend will text on/off reminders to, if any
+  status: "scheduled" | "started" | "finished" | "cancelled"; // started/finished = user turned it on/off
   savedOn: "server" | "device";
   createdAt: string;
 };
 
-export type LiveStatus = "scheduled" | "running" | "due" | "started" | "done" | "cancelled";
+// turn_off: a manual device the user turned on whose window has ended, so it should be switched off.
+export type LiveStatus = "scheduled" | "running" | "due" | "started" | "turn_off" | "done" | "cancelled";
+
+const TURN_OFF_GRACE = 6 * 3_600_000; // stop nagging after this long
 
 const KEY = "gridwise.tasks.v1";
 const EVENT = "gridwise-tasks";
@@ -42,10 +47,16 @@ function write(tasks: LocalTask[]) {
   window.dispatchEvent(new Event(EVENT));
 }
 
+/** Replace every task (demo data, resets). */
+export function replaceTasks(tasks: LocalTask[]) {
+  write(tasks);
+}
+
 export function liveStatus(t: LocalTask, now = Date.now()): LiveStatus {
   if (t.status === "cancelled") return "cancelled";
+  if (t.status === "finished") return "done";
   const s = Date.parse(t.start), e = Date.parse(t.end);
-  if (now >= e) return "done";
+  if (now >= e) return !t.smart && t.status === "started" && now < e + TURN_OFF_GRACE ? "turn_off" : "done";
   if (t.status === "started") return "started";
   if (now >= s) return t.smart ? "running" : "due";
   return "scheduled";
