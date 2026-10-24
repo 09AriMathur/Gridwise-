@@ -5,7 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="GridWise: run your appliances when Boston's grid is cleanest." />
     <title>GridWise</title>
-    <meta name="theme-color" content="#0b1120" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f2f7" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+    <script>
+      // Apply the saved theme before first paint so there's no flash. Same key
+      // and logic as src/components/theme-provider.tsx.
+      (function () {
+        var t = "system";
+        try { t = localStorage.getItem("vite-ui-theme") || "system"; } catch (e) {}
+        if (t === "system") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.classList.add(t);
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='7' fill='%235856d6'/%3E%3Cpath d='M13 2 4 14h7l-1 8 9-12h-7z' fill='%23ffffff'/%3E%3C/svg%3E" />
   </head>
   <body>
     <div id="root"></div>

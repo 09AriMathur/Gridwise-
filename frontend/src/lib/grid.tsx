@@ -1,12 +1,14 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { api } from "./api";
 import { levelOf } from "./optimizer";
-import type { Forecast, Level } from "./types";
+import type { Forecast, GridMix, Level } from "./types";
 import { usePolling } from "./usePolling";
 
 type Now = { intensity: number; level: Level; ts: string } | null;
 type GridState = {
   forecast: Forecast | null;
+  mix: GridMix | null;     // what the grid is made of; null while loading or if unavailable
+  zoneName: string;        // "ISO New England"; falls back while the mix loads
   now: Now;
   error: string | null;
   errorStatus: number | null;
@@ -19,6 +21,7 @@ const Ctx = createContext<GridState | null>(null);
 // One shared forecast for every page, refreshed every 10 minutes.
 export function GridProvider({ children }: { children: ReactNode }) {
   const f = usePolling(() => api.forecast(48), 10 * 60 * 1000);
+  const m = usePolling(() => api.mix(), 10 * 60 * 1000);
 
   const now = useMemo<Now>(() => {
     const pts = f.data?.points ?? [];
@@ -30,7 +33,7 @@ export function GridProvider({ children }: { children: ReactNode }) {
   }, [f.data]);
 
   const value: GridState = {
-    forecast: f.data, now, error: f.error, errorStatus: f.errorStatus ?? null, loading: f.loading, refresh: f.refresh,
+    forecast: f.data, mix: m.data, zoneName: m.data?.zoneName ?? "New England", now, error: f.error, errorStatus: f.errorStatus ?? null, loading: f.loading, refresh: f.refresh,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

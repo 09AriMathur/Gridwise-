@@ -48,10 +48,16 @@ export function findBestWindow(
 }
 
 // Bottom third of the next day = low, top third = high.
-export function levelOf(value: number, all: number[]): "low" | "moderate" | "high" {
-  if (all.length < 3) return value < 200 ? "low" : value < 320 ? "moderate" : "high";
+// Cut-offs between low/moderate/high: the day's terciles, or fixed values
+// when there's too little data to rank.
+export function levelThresholds(all: number[]): { low: number; high: number } {
+  if (all.length < 3) return { low: 200, high: 320 };
   const sorted = [...all].sort((a, b) => a - b);
-  const p33 = sorted[Math.floor(sorted.length / 3)];
-  const p66 = sorted[Math.floor((sorted.length * 2) / 3)];
-  return value <= p33 ? "low" : value >= p66 ? "high" : "moderate";
+  return { low: sorted[Math.floor(sorted.length / 3)], high: sorted[Math.floor((sorted.length * 2) / 3)] };
+}
+
+export function levelOf(value: number, all: number[]): "low" | "moderate" | "high" {
+  const { low, high } = levelThresholds(all);
+  if (all.length < 3) return value < low ? "low" : value < high ? "moderate" : "high";
+  return value <= low ? "low" : value >= high ? "high" : "moderate";
 }
