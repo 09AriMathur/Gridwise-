@@ -1,0 +1,31 @@
+{
+  "_note": "Synthetic demo data. Use this when the Electricity Maps API is unreachable, never as a real reading.",
+  "zone": "US-NE-ISNE",
+  "units": "gCO2eq/kWh",
+  "forecast": [
+    { "datetime": "2026-10-24T00:00:00Z", "carbonIntensity": 310 },
+    { "datetime": "2026-10-24T01:00:00Z", "carbonIntensity": 295 },
+    { "datetime": "2026-10-24T02:00:00Z", "carbonIntensity": 280 },
+    { "datetime": "2026-10-24T03:00:00Z", "carbonIntensity": 272 },
+    { "datetime": "2026-10-24T04:00:00Z", "carbonIntensity": 268 },
+    { "datetime": "2026-10-24T05:00:00Z", "carbonIntensity": 275 },
+    { "datetime": "2026-10-24T06:00:00Z", "carbonIntensity": 300 },
+    { "datetime": "2026-10-24T07:00:00Z", "carbonIntensity": 340 },
+    { "datetime": "2026-10-24T08:00:00Z", "carbonIntensity": 365 },
+    { "datetime": "2026-10-24T09:00:00Z", "carbonIntensity": 352 },
+    { "datetime": "2026-10-24T10:00:00Z", "carbonIntensity": 330 },
+    { "datetime": "2026-10-24T11:00:00Z", "carbonIntensity": 305 },
+    { "datetime": "2026-10-24T12:00:00Z", "carbonIntensity": 288 },
+    { "datetime": "2026-10-24T13:00:00Z", "carbonIntensity": 265 },
+    { "datetime": "2026-10-24T14:00:00Z", "carbonIntensity": 251 },
+    { "datetime": "2026-10-24T15:00:00Z", "carbonIntensity": 258 },
+    { "datetime": "2026-10-24T16:00:00Z", "carbonIntensity": 290 },
+    { "datetime": "2026-10-24T17:00:00Z", "carbonIntensity": 345 },
+    { "datetime": "2026-10-24T18:00:00Z", "carbonIntensity": 390 },
+    { "datetime": "2026-10-24T19:00:00Z", "carbonIntensity": 410 },
+    { "datetime": "2026-10-24T20:00:00Z", "carbonIntensity": 395 },
+    { "datetime": "2026-10-24T21:00:00Z", "carbonIntensity": 370 },
+    { "datetime": "2026-10-24T22:00:00Z", "carbonIntensity": 345 },
+    { "datetime": "2026-10-24T23:00:00Z", "carbonIntensity": 322 }
+  ]
+}

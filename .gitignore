@@ -1,0 +1,17 @@
+# secrets
+.env
+
+# local database
+gridwise.db
+
+# dependencies
+node_modules/
+
+# python virtualenv
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# build output
+dist/
