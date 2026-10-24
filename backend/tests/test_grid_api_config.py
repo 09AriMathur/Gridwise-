@@ -116,7 +116,8 @@ def _reload_with_env(monkeypatch, env):
         else:
             monkeypatch.setenv(name, value)
     # Prevent python-dotenv from re-reading a local .env and overriding us.
-    monkeypatch.setattr(grid_api, "load_dotenv", lambda *a, **k: False, raising=False)
+    # Patch the source module: reload re-runs `from dotenv import load_dotenv`.
+    monkeypatch.setattr("dotenv.load_dotenv", lambda *a, **k: False)
     return importlib.reload(grid_api)
 
 
