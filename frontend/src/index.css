@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+:root { color-scheme: dark; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #0b1120; }
+.scrollbar-thin { scrollbar-width: thin; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
